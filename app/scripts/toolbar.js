@@ -100,14 +100,14 @@ $(function() {
         
     });
 
-    $('.toolbar-menu .btn,.toolbar-menu .flyout-btn').hover(function () {
-        var _this = this;
-        $(_this).addClass('animated tada infinite');
+    // $('.toolbar-menu .btn,.toolbar-menu .flyout-btn').hover(function () {
+    //     var _this = this;
+    //     $(_this).addClass('animated tada infinite');
         
-    },function () {
-        var _this = this;
-        $(_this).removeClass('animated tada infinite');
-    });
+    // },function () {
+    //     var _this = this;
+    //     $(_this).removeClass('animated tada infinite');
+    // });
 
     $draggable.find('li').each(function (index,el) {
         $(el).tinytip({

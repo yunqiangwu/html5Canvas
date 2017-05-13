@@ -16,6 +16,12 @@
     "colpick": "^2.0.2"
   },
   "overrides": {
+    "colpick":{
+      "main":[
+        "css/colpick.css",
+        "js/colpick.js"
+      ]
+    },
     "bootstrap": {
       "main": [
         "scss/bootstrap.scss",

@@ -115,6 +115,7 @@ position: absolute ;
 }
 
 .textEl>textarea{
+  font: normal normal 500 normal 24px / 26.4px -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   resize:both;background: transparent;border:3px dotted #000;
 }
 

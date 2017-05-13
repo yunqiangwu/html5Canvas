@@ -18,11 +18,14 @@ var c_w = 550,
 GameCanvasContext.canvasMode = 'pencil_btn';
 
 
-
+var historyData = [];
+var historyIndex = -1;
+var historyMaxIndex = 100;
 var canvas = GameCanvasContext.canvas = canvas;
 var ctx = GameCanvasContext.ctx = GameCanvasContext.canvas.getContext('2d');
 var bgColor = 'rgba(255,255,255,.3)';
 var strokeColor = '#000';
+var cfont =  window.getComputedStyle($('#prev_font')[0]).font;
 var fillColor = '#00ff00';
 var lineWidth = 5;
 var widthSlider = null;
@@ -53,14 +56,14 @@ GameCanvasContext.centerCanvas = function centerCanvas(w, h) {
 
 
     canvasWrap.css({
-        'width': w + 80,
-        'height': h + 80
+        'width': (+w) + 80 +'px',
+        'height': (+h) + 80 +'px'
     });
     $('#canvas').css({
         // 'top': 0 + 'px',
         // 'left': 0 + 'px',
-        'width': w,
-        'height': h
+        'width': w+'px',
+        'height': h+'px'
     });
     GameCanvasContext.cscroll && GameCanvasContext.cscroll.refresh();
 
@@ -79,7 +82,10 @@ GameCanvasContext.draw = function(x, y, type, e) {
 
             case 'eraser_btn':
                 if (type === 'dragstart' || type === 'drag' || type === 'dragend' || type === 'click') {
-                    ctx.clearRect(x - 15, y - 5, 30, 30);
+                    ctx.clearRect(x - 15, y - 15, 30, 30);
+                    if (!(type === 'dragend' || type === 'click')) {
+                        return;
+                    }
                 } else {
                     window.console.log(type);
                     return;
@@ -93,13 +99,13 @@ GameCanvasContext.draw = function(x, y, type, e) {
                     return GameCanvasContext.ctx.moveTo(x, y);
                 } else if (type === 'drag') {
                     ctx.lineTo(x, y);
-                    ctx.stroke();
+                    return ctx.stroke();
                 } else if (type === 'dragend') {
-                    return ctx.closePath();
+                    ctx.closePath();
                 } else if (type === 'click') {
                     ctx.save();
-                    isRestore=true;
-                    ctx.fillStyle=strokeColor;
+                    isRestore = true;
+                    ctx.fillStyle = strokeColor;
                     ctx.beginPath();
                     ctx.arc(x, y, ctx.lineWidth + 1, 0, Math.PI * 2, false);
                     ctx.fill();
@@ -110,33 +116,39 @@ GameCanvasContext.draw = function(x, y, type, e) {
                 break;
             case 'brush_btn':
                 drawBrush(x, y);
+                if (!(type === 'dragend' || type === 'click')) {
+                    return;
+                }
                 break;
             case 'text_btn':
+                var isRetrun= true;
                 if (type === 'click') {
                     // startPoint = { x: x, y: y };
                     if ($currentTextel) {
                         var text = textareael.val().trim();
-                        if (text !== "") {
-                          var tx = $currentTextel.position().left;
-                          var ty = $currentTextel.position().top;
-                          var tx2 = $(canvas).position().left;
-                          var ty2 = $(canvas).position().top;
-                          tx = tx-tx2+5;
-                          ty = ty-ty2+23;
-                          var txtStyle = window.getComputedStyle(textareael[0]);
-                          drawText(text,tx,ty,textareael.width() ,textareael.height(),txtStyle);
+                        if (text !== '') {
+                            var tx = $currentTextel.position().left;
+                            var ty = $currentTextel.position().top;
+                            var tx2 = $(canvas).position().left;
+                            var ty2 = $(canvas).position().top;
+                            tx = tx - tx2 + 5;
+                            ty = ty - ty2 + 23;
+                            var txtStyle = window.getComputedStyle(textareael[0]);
+                            drawText(text, tx, ty, textareael.width(), textareael.height(), txtStyle);
+                            isRetrun =false;
                         }
                         $currentTextel.remove();
                         $currentTextel = null;
                     }
                     if ($currentTextel == null) {
                         var canvasOffset = $(canvas).offset();
-                        $currentTextel = $("<div class='textEl'><div class='handle'/><div class='handle'/><div class='handle'/><div class='handle'/><div class='resizeHandle' /><textarea /></div>")
+                        $currentTextel = $('<div class=\'textEl\'><div class=\'handle\'/><div class=\'handle\'/><div class=\'handle\'/><div class=\'handle\'/><div class=\'resizeHandle\' /><textarea /></div>')
                             .appendTo('#main-canvas-container')
-                            .draggabilly({ handle: '.handle',containment: '#canvas' })
+                            .draggabilly({ handle: '.handle', containment: '#canvas' })
                             .css({ left: e.pageX - canvasOffset.left + 'px', top: e.pageY - canvasOffset.top + 'px' })
                             .find('textarea')
-                            .css('color',strokeColor)
+                            .css('color', strokeColor)
+                            .css('font',cfont)
                             .mouseup(function() {
                                 var $this = jQuery(this);
                                 if ($this.outerWidth() != $this.data('x') || $this.outerHeight() != $this.data('y')) {
@@ -149,8 +161,11 @@ GameCanvasContext.draw = function(x, y, type, e) {
                             }).parent();
                         textareael = $currentTextel.find('textarea');
                         $currentTextel.width(textareael.width() + 12).height(textareael.height() + 12);
-                       textareael.focus();
-                       return
+                        textareael.focus();
+                        if(isRetrun){
+                            return;
+                        }
+                        
                     }
                 } else if (type === 'dragend') {
                     // alert(32);
@@ -173,10 +188,18 @@ GameCanvasContext.draw = function(x, y, type, e) {
                 // if(type)
 
         }
-        ctxTemp.putImageData(ctx.getImageData(0, 0, canvas.width, canvas.height), 0, 0);
+        var cc = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        ctxTemp.putImageData(cc, 0, 0);
+        if (historyIndex <= historyMaxIndex) {
+            historyIndex++;
+        } else {
+            historyData.shift();
+        }
+        historyData.push(cc);
 
-    }catch(e){
-      console.log(e);
+
+    } catch (e) {
+        console.log(e);
     } finally {
         if (isRestore) {
             ctx.restore();
@@ -296,25 +319,26 @@ function action(command, old_command) {
     console.log(command, old_command);
 
 
-    if (old_command == 'hand_btn' && command != 'hand_btn') {
+    if (old_command == 'hand_btn' && command != 'hand_btn'  && command != 'zoomout_btn'  && command != 'zoomin_btn') {
         closeHandMode();
         bindCanvasEvent();
     }
-    if(old_command == "text_btn" && command != 'text_btn'){
-      var text = textareael.val().trim();
-      if (text !== "") {
-        var tx = $currentTextel.position().left;
-        var ty = $currentTextel.position().top;
-        var tx2 = $(canvas).position().left;
-        var ty2 = $(canvas).position().top;
-        tx = tx-tx2+5;
-        ty = ty-ty2+23;
-        var txtStyle = window.getComputedStyle(textareael[0]);
-        drawText(text,tx,ty,textareael.width() ,textareael.height(),txtStyle);
-      }
-      $currentTextel.remove();
-      $currentTextel = null;
-      ctxTemp.putImageData(ctx.getImageData(0, 0, canvas.width, canvas.height), 0, 0);
+    if (textareael && old_command == 'text_btn' && command != 'text_btn') {
+        var text = textareael.val().trim();
+        if (text !== '') {
+            var tx = $currentTextel.position().left;
+            var ty = $currentTextel.position().top;
+            var tx2 = $(canvas).position().left;
+            var ty2 = $(canvas).position().top;
+            tx = tx - tx2 + 5;
+            ty = ty - ty2 + 23;
+            var txtStyle = window.getComputedStyle(textareael[0]);
+            drawText(text, tx, ty, textareael.width(), textareael.height(), txtStyle);
+        }
+        $currentTextel.remove();
+        $currentTextel = null;
+        textareael = null;
+        ctxTemp.putImageData(ctx.getImageData(0, 0, canvas.width, canvas.height), 0, 0);
 
     }
 
@@ -322,6 +346,7 @@ function action(command, old_command) {
         case 'hand_btn':
             if (old_command == 'hand_btn')
                 return;
+            changeCursor(command);
             removeCanvasEvent();
             openHandMode();
             break;
@@ -334,6 +359,20 @@ function action(command, old_command) {
         case 'clear_btn':
             GameCanvasContext.clear();
             break;
+        case 'undo_btn':
+            if (historyIndex >= 1) {
+                historyIndex--;
+                ctx.putImageData(historyData[historyIndex], 0, 0);
+                ctxTemp.putImageData(historyData[historyIndex], 0, 0);
+            }
+            break;
+        case 'redo_btn':
+            if (historyData.length - 1 >= historyIndex + 1) {
+                historyIndex++;
+                ctx.putImageData(historyData[historyIndex], 0, 0);
+                ctxTemp.putImageData(historyData[historyIndex], 0, 0);
+            }
+            break;
         case 'pencil_btn':
         case 'eraser_btn':
         case 'brush_btn':
@@ -341,18 +380,19 @@ function action(command, old_command) {
         case 'line_btn':
         case 'circle_btn':
         case 'rect_btn':
-        case 'text_btn':
             GameCanvasContext.changetool(command);
             break;
-        case 'color_stroke_btn':
+        case 'text_btn':
+            if(old_command =='text_btn'){
+                $('#fontSettingModal').modal('show');
+            }
+            GameCanvasContext.changetool(command);
+            break;
+        case 'color_btn':
             // $('#color_stroke_btn').trigger('focusin.tcp')
+            $('#colorSettingModal').modal('show');
             break;
-        case 'color_fill_btn':
-            // $('#color_fill_btn').trigger('focusin.tcp')
-            break;
-        case 'background_btn':
-            // $('#background_btn').trigger('focusin.tcp')
-            break;
+
         case 'width_btn':
             $('#borderSettingModal').modal('show');
             break;
@@ -374,66 +414,61 @@ GameCanvasContext.init = function() {
         resizeTimer = setTimeout(resizeCanvas, 400);
     });
 
-    var colorOptions = {
-        // customBG: '#222',
-        margin: '4px -2px 0',
-        doRender: 'div div',
-        preventFocus: true,
-        animationSpeed: 0,
 
-        // demo on how to make plugins... mobile support plugin
-        buildCallback: function($elm) {
-            this.$colorPatch = $elm.prepend('<div class="cp-disp">').find('.cp-disp');
-            // $('.color').on('click', function(e) {
-            //     e.preventDefault && e.preventDefault();
-            // });
-        },
-        cssAddon: // could also be in a css file instead
-            '.cp-disp{padding:10px; margin-bottom:6px; font-size:19px; height:20px; line-height:20px}' +
-            '.cp-xy-slider{width:200px; height:200px;}' +
-            '.cp-xy-cursor{width:16px; height:16px; border-width:2px; margin:-8px}' +
-            '.cp-z-slider{height:200px; width:40px;}' +
-            '.cp-z-cursor{border-width:8px; margin-top:-8px;}' +
-            '.cp-alpha{height:40px;}' +
-            '.cp-alpha-cursor{border-width: 8px; margin-left:-8px;}',
 
-        renderCallback: function($elm, toggled) {
-            var colors = this.color.colors;
-            strokeColor = '#' + (colors.HEX);
-            refreshColor();
-            // this.$colorPatch.css({
-            //     backgroundColor: '#' + colors.HEX,
-            //     color: colors.RGBLuminance > 0.22 ? '#222' : '#ddd'
-            // }).text(this.color.toString($elm._colorMode)); // $elm.val();
+    $('#strokeColorSetting').colpick({
+        flat: true,
+        layout: 'hex',
+        submit: 0,
+        onChange: function(a, b, c) {
+            this.data('color', b);
+            // console.log(a,b,c);
+            // console.log(this);
         }
-    };
+    });
+    //     .colorPicker($.extend({}, colorOptions, {
+    //         renderCallback: function($elm, toggled) {
+    //             var colors = this.color.colors;
+    //             strokeColor = '#' + (colors.HEX);
+    //             refreshColor();
+    //     }
+    // }));
 
-    $('#color_stroke_btn')
-        .colorPicker($.extend({}, colorOptions, {
-            renderCallback: function($elm, toggled) {
-                var colors = this.color.colors;
-                strokeColor = '#' + (colors.HEX);
-                refreshColor();
-            }
-        }));
+    $('#fillColorSetting').colpick({
+        flat: true,
+        layout: 'hex',
+        submit: 0,
+        onChange: function(a, b, c) {
+            this.data('color', b);
+            // console.log(a,b,c);
+            // console.log(this);
+        }
+    });
+    // .colorPicker($.extend({}, colorOptions, {
+    //     renderCallback: function($elm, toggled) {
+    //         var colors = this.color.colors;
+    //         fillColor = '#' + (colors.HEX);
+    //         refreshColor();
+    //     }
+    // }));
 
-    $('#color_fill_btn')
-        .colorPicker($.extend({}, colorOptions, {
-            renderCallback: function($elm, toggled) {
-                var colors = this.color.colors;
-                fillColor = '#' + (colors.HEX);
-                refreshColor();
-            }
-        }));
-
-    $('#background_btn')
-        .colorPicker($.extend({}, colorOptions, {
-            renderCallback: function($elm, toggled) {
-                var colors = this.color.colors;
-                bgColor = '#' + (colors.HEX);
-                refreshColor();
-            }
-        }));
+    $('#backgroundColorSetting').colpick({
+        flat: true,
+        layout: 'hex',
+        submit: 0,
+        onChange: function(a, b, c) {
+            this.data('color', b);
+            // console.log(a,b,c);
+            // console.log(this);
+        }
+    });
+    // .colorPicker($.extend({}, colorOptions, {
+    //     renderCallback: function($elm, toggled) {
+    //         var colors = this.color.colors;
+    //         bgColor = '#' + (colors.HEX);
+    //         refreshColor();
+    //     }
+    // }));
     refreshColor();
 
     widthSlider = $('#width_slider').slider({ value: lineWidth }).data('slider');
@@ -469,16 +504,28 @@ GameCanvasContext.init = function() {
         $('#borderSettingModal').modal('hide');
     });
 
+
+
+
+    $('#submit_color').click(function() {
+        // changeLineWidth($('#width_slider').val());
+        strokeColor = '#' + $('#strokeColorSetting').data('color');
+        fillColor = '#' + $('#fillColorSetting').data('color');
+        bgColor = '#' + $('#backgroundColorSetting').data('color');
+        refreshColor();
+        $('#colorSettingModal').modal('hide');
+    });
+
     GameCanvasContext.resizeCanvas();
-    $('#color_stroke_btn').css({
-        background: strokeColor,
-    });
-    $('#color_fill_btn').css({
-        background: fillColor,
-    });
-    $('#background_btn').css({
-        background: bgColor,
-    });
+    // $('#strokeColorSetting').css({
+    //     background: strokeColor,
+    // });
+    // $('#fillColorSetting').css({
+    //     background: fillColor,
+    // });
+    // $('#backgroundColorSetting').css({
+    //     background: bgColor,
+    // });
 
     $(canvasTemp).draggabilly({
         containment: 'body'
@@ -490,7 +537,7 @@ GameCanvasContext.init = function() {
             show ? $(canvasTemp).show() : $(canvasTemp).hide();
         });
 
-        changetool(GameCanvasContext.canvasMode);
+    changetool(GameCanvasContext.canvasMode);
 }
 
 function bindCanvasEvent() {
@@ -559,7 +606,7 @@ function zoomout() {
 function changeCursor(tool_id) {
     switch (tool_id) {
         case 'pencil_btn':
-            $(canvas).css('cursor', "url('./images/pencil.png') 2 30,auto");
+            $(canvas).css('cursor', 'url(\'./images/pencil.png\') 2 30,auto');
             break;
         case 'line_btn':
         case 'circle_btn':
@@ -569,7 +616,7 @@ function changeCursor(tool_id) {
         case 'eraser_btn':
         case 'brush_btn':
         default:
-            $(canvas).css('cursor', "url('./images/" + tool_id.substr(0, tool_id.length - 4) + ".png') 2 30,auto");
+            $(canvas).css('cursor', 'url(\'./images/' + tool_id.substr(0, tool_id.length - 4) + '.png\') 2 30,auto');
             break;
     }
 }
@@ -628,6 +675,8 @@ function drawTempShape(canvasMode, sx, sy, ex, ey) {
 
 function saveTempShape() {
     tempShape = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+
 }
 
 function restoreTempShape(isClearTemp) {
@@ -679,22 +728,31 @@ function drawShape(canvasMode, sx, sy, ex, ey, isTemping) {
     }
 
 }
-function drawText(str,x,y,width,height,txtStyle) {
-  // console.log(str,x,y,width,height);
-  // ctx.font="20px Georgia";
-  // ctx.fillText(str,x,y,width);
-  var lineHeight = /\d+/.exec(txtStyle.lineHeight)[0];
+
+function drawText(str, x, y, width, height, txtStyle) {
+    // console.log(str,x,y,width,height);
+    // ctx.font="20px Georgia";
+    // ctx.fillText(str,x,y,width);
+    var lineHeight = +(/\d+/.exec(txtStyle.lineHeight)[0]);
 
 
-  ctx.font = txtStyle.font;
-  ctx.fillStyle = strokeColor;
-  canvasTextAutoLine(str,width,x,y,+lineHeight);
-  ctx.fillStyle = fillColor;
+    ctx.font = txtStyle.font;
+    ctx.fillStyle = strokeColor;
+
+
+    x *= (canvas.width / c_w);
+    y *= (canvas.height / c_h);
+    width *= (canvas.width / c_w);
+    height *= (canvas.height / c_h);
+    lineHeight *= (canvas.height / c_h);
+
+    canvasTextAutoLine(str, width, x, y, lineHeight);
+    ctx.fillStyle = fillColor;
 }
 
 
-function canvasTextAutoLine(str,width,initX,initY,lineHeight){
-    
+function canvasTextAutoLine(str, width, initX, initY, lineHeight) {
+
     // for(let i=0;i<str.length;i++){ 
     //     x+=ctx.measureText(str[i]).width; 
     //     if(x>width){//减去initX,防止边界出现的问题 
@@ -707,91 +765,147 @@ function canvasTextAutoLine(str,width,initX,initY,lineHeight){
     //     // }
     // }
     var y = 0;
-    var n = str.length;var i = 0;
-    var mstr = "";
-    while(true){
-      var t= str.substring(i,i+1);
-      if(ctx.measureText(mstr).width>width||t==='\n'){
-        ctx.fillText(mstr,initX,initY+y);
-        y+=lineHeight;
-        mstr="";
-        t='';
-      }
-      mstr +=t;
-      i++;
-      if(i>=n){
-        if(mstr !== ""){
-          ctx.fillText(mstr,initX,initY+y);
+    var n = str.length;
+    var i = 0;
+    var mstr = '';
+    while (true) {
+        var t = str.substring(i, i + 1);
+        if (ctx.measureText(mstr).width > width || t === '\n') {
+            ctx.fillText(mstr, initX, initY + y);
+            y += lineHeight;
+            mstr = '';
+            t = '';
         }
-        break;
-      }
+        mstr += t;
+        i++;
+        if (i >= n) {
+            if (mstr !== '') {
+                ctx.fillText(mstr, initX, initY + y);
+            }
+            break;
+        }
     }
 
-  }
+}
 
 
 
 
 
 
-  $('#save_btn').click(function () {
-        download('png');
-  });
-
-
-
-
-
-
-
-  function download(type) {
-      //设置保存图片的类型
-      var imgdata = canvas.toDataURL(type);
-      //将mime-type改为image/octet-stream,强制让浏览器下载
-      var fixtype = function (type) {
-          type = type.toLocaleLowerCase().replace(/jpg/i, 'jpeg');
-          var r = type.match(/png|jpeg|bmp|gif/)[0];
-          return 'image/' + r;
-      }
-      imgdata = imgdata.replace(fixtype(type), 'image/octet-stream')
-      //将图片保存到本地
-      var saveFile = function (data, filename) {
-          var link = document.createElement('a');
-          link.href = data;
-          link.download = filename;
-          var event = document.createEvent('MouseEvents');
-          event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-          link.dispatchEvent(event);
-      }
-      var filename = new Date().toLocaleDateString() + '.' + type;
-      saveFile(imgdata, filename);
-  }
-
-
-
-onchange="preImg(this.id,'imgPre');"
-
-$('#open_btn').click(function(){
-  $('#imgOne').click();
+$('#save_btn').click(function() {
+    download('png');
 });
 
-$('#imgOne').change(function () {
-  preImg(this.id,'imgPre');
-});
-        //打开图片
-        function preImg(sourceId, targetId) {
-            if (typeof FileReader === 'undefined') {
-                alert('Your browser does not support FileReader...');
-                return;
-            }
-            var reader = new FileReader();
 
-            reader.onload = function (e) {
-                var img = document.getElementById(targetId);
-                img.src = this.result;
-                img.onload = function () {
-                    ctx.drawImage(img, 0, 0);
-                }
-            }
-            reader.readAsDataURL(document.getElementById(sourceId).files[0]);
+
+
+
+
+
+function download(type) {
+    //设置保存图片的类型
+    var imgdata = canvas.toDataURL(type);
+    //将mime-type改为image/octet-stream,强制让浏览器下载
+    var fixtype = function(type) {
+        type = type.toLocaleLowerCase().replace(/jpg/i, 'jpeg');
+        var r = type.match(/png|jpeg|bmp|gif/)[0];
+        return 'image/' + r;
+    }
+    imgdata = imgdata.replace(fixtype(type), 'image/octet-stream')
+        //将图片保存到本地
+    var saveFile = function(data, filename) {
+        var link = document.createElement('a');
+        link.href = data;
+        link.download = filename;
+        var event = document.createEvent('MouseEvents');
+        event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        link.dispatchEvent(event);
+    }
+    var filename = new Date().toLocaleDateString() + '.' + type;
+    saveFile(imgdata, filename);
+}
+
+
+
+onchange = 'preImg(this.id,\'imgPre\');'
+
+$('#open_btn').click(function() {
+    $('#imgOne').click();
+});
+
+$('#imgOne').change(function() {
+    preImg(this.id, 'imgPre');
+});
+//打开图片
+function preImg(sourceId, targetId) {
+    if (typeof FileReader === 'undefined') {
+        alert('Your browser does not support FileReader...');
+        return;
+    }
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+        var img = document.getElementById(targetId);
+        img.src = this.result;
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0);
         }
+    }
+    reader.readAsDataURL(document.getElementById(sourceId).files[0]);
+}
+
+
+
+$('#font_settings select,#font_settings input').change(function() {
+    var prev_font = $('#prev_font');
+    switch(this.id){
+        case 'fontSize':
+            prev_font.css('font-size',this.value);
+            break;
+        case 'fontType':
+            prev_font.css('font-family',this.value);
+            break;
+        case 'fontBold':
+            prev_font.css('font-weight',$(this).is(':checked')?'bolder':'normal'   );
+            break;
+        case 'fontItalic':
+            prev_font.css('font-style',$(this).is(':checked')?'italic':'normal'   );
+            break;
+    }
+});
+
+
+
+
+$('#submit_font').click(function(event) {
+    cfont = window.getComputedStyle($('#prev_font')[0]).font;
+    textareael.css('font',cfont);
+    $('#fontSettingModal').modal('hide');
+});
+
+
+$('#canvas-size-btn').click(function(){
+        $('#canvas-width').val(canvas.width);
+         $('#canvas-height').val(canvas.height);
+        $('#sizeSettingModal').modal('show');
+        
+});
+
+
+$('#submit_canvas_size').click(function(event) {
+
+
+     var w=document.getElementById('canvas-width').value;
+     var h=document.getElementById('canvas-height').value;
+
+     c_w = w;
+     c_h = h;
+     canvas.setAttribute('width',c_w);
+     canvas.setAttribute('height',c_h);
+     resizeCanvas();
+
+    // cfont = window.getComputedStyle($('#prev_font')[0]).font;
+    // textareael.css('font',cfont);
+    $('#sizeSettingModal').modal('hide');
+});

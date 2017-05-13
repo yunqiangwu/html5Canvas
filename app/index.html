@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="lib/animate.css/animate.css" />
     <link rel="stylesheet" href="lib/bootstrap-slider/slider.css" />
     <link rel="stylesheet" href="lib/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css" />
+    <link rel="stylesheet" href="lib/colpick/css/colpick.css" />
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -46,7 +47,7 @@
             <a href="#" id="save_btn"><i class="fa fa-fw fa-bell-o"></i><span>保存</span></a>
             <!-- <a href="#" id="share_btn"><i class="fa fa-fw fa-envelope-o"></i><span>分享</span></a> -->
             <!-- <a href="#"><i class="fa fa-fw fa-comment-o"></i><span>导入</span></a> -->
-            <!-- <a href="#" id=""><i class="fa fa-fw fa-bar-chart-o"></i><span>设置纸张大小</span></a> -->
+            <a href="#" id="canvas-size-btn"><i class="fa fa-fw fa-bar-chart-o"></i><span>设置纸张大小</span></a>
             <a href="#" style="display: none;"><i class="fa fa-fw fa-newspaper-o"></i><span>显示导航图</span><input class="switch" id="nav_show_switch" type="checkbox" name="nav_show_switch" checked /></a>
           </div>
         </nav>
@@ -62,14 +63,14 @@
             <li class="menu-item"><a href="#" class="btn" id="line_btn"><img src="images/line.png" alt="线条工具"></a></li>
             <li class="menu-item"><a href="#" class="btn" id="circle_btn"><img src="images/circle.png" alt="圆形工具"></a></li>
             <li class="menu-item"><a href="#" class="btn" id="rect_btn"><img src="images/rect.png" alt="矩形工具"></a></li>
-            <li class="menu-item"><a href="#" class="btn" id="color_stroke_btn"><img src="images/color.png" alt="线条工具"></a></li>
-            <li class="menu-item"><a href="#" class="btn" id="color_fill_btn"><img src="images/color.png" alt="填充工具"></a></li>
-            <li class="menu-item"><a href="#" class="btn" id="background_btn"><img src="images/background.png" alt="背景工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="color_btn"><img src="images/color.png" alt="线条工具"></a></li>
+            <!-- <li class="menu-item"><a href="#" class="btn" id="color_fill_btn"><img src="images/color.png" alt="填充工具"></a></li> -->
+            <!-- <li class="menu-item"><a href="#" class="btn" id="background_btn"><img src="images/background.png" alt="背景工具"></a></li> -->
             <li class="menu-item"><a href="#" class="btn" id="width_btn"><img src="images/width.png" alt="粗细工具"></a></li>
             <li class="menu-item"><a href="#" class="btn" id="text_btn"><img src="images/text.png" alt="文本工具"></a></li>
-<!--             <li class="menu-item"><a href="#" class="btn" id="undo_btn"><img src="images/undo.png" alt="撤销工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="undo_btn"><img src="images/undo.png" alt="撤销工具"></a></li>
             <li class="menu-item"><a href="#" class="btn" id="redo_btn"><img src="images/redo.png" alt="恢复工具"></a></li>
-            <li class="menu-item"><a href="#" class="btn" id="copy_btn"><img src="images/copy.png" alt="复制工具"></a></li> -->
+            <!-- <li class="menu-item"><a href="#" class="btn" id="copy_btn"><img src="images/copy.png" alt="复制工具"></a></li> -->
             <li class="menu-item"><a href="#" class="btn" id="hand_btn"><img src="images/hand.png" alt="手形工具"></a></li>
             <li class="menu-item"><a href="#" class="btn" id="clear_btn"><img src="images/clear.png" alt="清空工具"></a></li>
             <li class="menu-item"><a href="#" class="btn" id="picker_btn"><img src="images/picker.png" alt="取色器工具"></a></li>
@@ -84,7 +85,7 @@
       </div>
 
 
-      <canvas style="position: absolute;left: 0px;bottom: 0px; width: 275px;height: 200px; background: rgba(255,0,0,0.2);" id="canvas-temp" width="550px" height="400px"></canvas>
+      <canvas style="position: absolute;left: 0px;bottom: 0px; width: 275px;height: 200px; background: rgba(0,255,125,0.2);" id="canvas-temp" width="550px" height="400px"></canvas>
 
     </div>
         <!-- Modal -->
@@ -106,6 +107,139 @@
             </div>
           </div>
         </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="colorSettingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2">
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel2">颜色设置</h4>
+              </div>
+              <div class="modal-body">
+                 <div class="row">
+                  <div class="col-md-4" id="strokeColorSetting" style="min-height: 40px">边框颜色</div>
+                  <div class="col-md-4" id="fillColorSetting" style="min-height: 40px">填充颜色</div>
+                  <div class="col-md-4" id="backgroundColorSetting" style="min-height: 40px">背景颜色</div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="submit_color">确定</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="fontSettingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4">
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel4">字体设置</h4>
+              </div>
+              <div class="modal-body">
+                  <div class="row">
+                  <div class="col-md-12">
+
+
+    <fieldset id="font_settings" style="border: 5px silver groove;padding: 20px 20px 10px 20px;" >
+            <legend><b>&nbsp;字体设置</b></legend>
+            <span><span style="float: left;margin-top: -6px;">字体大小: </span>
+                    <select id="fontSize" name="fontSize" class  >10px 25px 10px 25px
+                         <option value="8px">8px</option>
+                         <option value="10px">10px</option>
+                         <option value="12px" selected>12px</option>
+                         <option value="14px">14px</option>
+                         <option value="16px">16px</option>
+                         <option value="18px">18px</option>
+                         <option value="20px">20px</option>
+                         <option value="22px">22px</option>
+                         <option value="24px">24px</option>
+                         <option value="26px">26px</option>
+                         <option value="28px">28px</option>
+                         <option value="30px">30px</option>
+                         <option value="32px">32px</option>
+                         <option value="34px">34px</option>
+                         <option value="36px">36px</option>
+                 </select>
+                 </span>
+                 <br/>
+            <span><span style="float: left;margin-top: 8px;">字体选择:</span>                   
+                    <select id="fontType" name="fontType" style="top:20px;" >
+                         <option value="宋体" >宋体</option>
+                         <option value="微软雅黑">微软雅黑</option>
+                         <option value="仿宋">仿宋</option>
+                         <option value="Arial" selected>Arial</option>
+                         <option value="Consolas">Consolas</option>
+                 </select>
+            </span>
+            <span style="font-weight:bold;"><input type="checkbox" id="fontBold" name="fontBold" style="margin-top: 20px;"><label for="fontBold" >B</label></span>
+            <span style="font-style: italic;"><input type="checkbox" id="fontItalic" name="fontItalic"   style="margin-left: 20px;"><label for="fontItalic" >I</label></span>
+            <div>
+                <hr>
+                <h4 id="prev_font">字体预览</h4>
+            </div>
+         </fieldset>
+
+</div></div>
+
+
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="submit_font">确定</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="sizeSettingModal" tabindex="-1" role="dialog" aria-labelledby="myModalsize">
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalsize">画布大小设置</h4>
+              </div>
+              <div class="modal-body">
+                 <div class="row">
+                  <div class="col-md-6"  id="strokeColorSetting" style="text-align:center;min-height: 40px">宽度:</div>
+                  <div class="col-md-6" id="fillColorSetting" style="min-height: 40px">
+                    <input type="number"  id="canvas-width"  placeholder="请输入你想输入的宽度,其值在[ 1,1000 ]之间"  />
+                  </div>
+                  <div class="col-md-6" id="backgroundColorSetting" style="text-align:center; min-height: 40px">高度:</div>
+                   <div class="col-md-6" id="backgroundColorSetting" style="min-height: 40px">
+                        <input type="number"  id="canvas-height"  placeholder="请输入你想输入的宽度,其值在[ 1,800 ]之间" />
+                   </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="submit_canvas_size">确定</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+
+
 
 
    <form action="" style="display: none;">
@@ -130,6 +264,7 @@
     <script src="lib/tinyColorPicker/jqColorPicker.min.js"></script>
     <script src="lib/bootstrap-slider/bootstrap-slider.js"></script>
     <script src="lib/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
+    <script src="lib/colpick/js/colpick.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
     
