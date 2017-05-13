@@ -1,0 +1,110 @@
+.toolbar-menu li {
+    list-style-type: none;
+}
+
+.toolbar-menu {
+    position: absolute;
+    padding: 0px;
+    width: 36px;
+    height: 36px;
+    top: 12rem;
+    right: 10rem;
+    z-index: 1000;
+}
+
+.toolbar-menu .flyout {
+    position: absolute;
+    transform: translateX(6px);
+    padding: 0;
+}
+
+.toolbar-menu .menu-item {}
+
+.toolbar-menu .flyout-btn {
+    /* opacity: .4; */
+    box-sizing: content-box;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 9999;
+    width: 36px;
+    height: 36px;
+    overflow: hidden;
+    text-indent: -99999px;
+    /* text-align: center; */
+    background: #f76f54;
+    /* background: linear-gradient(top, #f76f54 0, #dd3535 49%, #d32121 51%, #c61f1f 100%); */
+    border: 4px solid #fff;
+    border-radius: 50%;
+    outline: none;
+    box-shadow: rgba(0, 0, 0, 0.3) 0 3px 8px 0, rgba(0, 0, 0, 0.2) 0 0 0 1px, inset rgba(0, 0, 0, 0.3) 0 0 0 1px, inset rgba(255, 255, 255, 0.3) 0 1px 0 1px;
+}
+
+.toolbar-menu .flyout-btn span {
+    display: block;
+    width: 36px;
+    height: 36px;
+    background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20px' height='20px'><g><path fill='#fff' d='M20,11.402c0,0.453-0.367,0.82-0.822,0.82H0.82c-0.453,0-0.82-0.367-0.82-0.82V8.598 c0-0.454,0.367-0.821,0.82-0.821h18.357C19.633,7.776,20,8.144,20,8.598V11.402z'/><path fill='#fff' d='M8.598,20c-0.453,0-0.821-0.367-0.821-0.82V0.821c0-0.452,0.368-0.82,0.821-0.82h2.804 c0.453,0,0.82,0.368,0.82,0.82V19.18c0,0.453-0.367,0.82-0.82,0.82H8.598z'/></g></svg>") no-repeat center center;
+    transition: transform .4s ease;
+}
+
+.flyout-btn.btn-rotate span {
+    transform: rotate(-135deg);
+}
+
+.flyout > li {
+    position: absolute;
+    display: block;
+    /* width: 170px; */
+    height: 170px;
+    background: yellow;
+    transition: transform .5s ease;
+    transform-origin: 12.5px bottom;
+}
+
+.flyout > li .btn.clicked {
+    transform: scale(1.3);
+    box-shadow: rgba(0, 0, 0, 0.3) 2px 8px 8px 3px;
+}
+
+.flyout > li .btn {
+    box-sizing: content-box;
+    padding: 0;
+    position: absolute;
+    top: 0rem;
+    left: 0rem;
+    display: block;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    overflow: hidden;
+    color: white;
+    /* text-indent: -99999px; */
+    text-align: center;
+    background: #444;
+    border: 3px solid #fff;
+     /* background: #fff; */
+    /* border: 3px solid #000; */
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.4) 0 0 5px 0, rgba(0, 0, 0, 0.2) 0 0 0 1px, inset rgba(0, 0, 0, 0.5) 0 0 2px 0;
+    transition-timing-function: cubic-bezier(0.18, 0.89, 0.74, 1.39);
+}
+
+.flyout > li .btn img {
+  display: block;
+  position: absolute;
+  box-shadow: inset rgba(0, 0, 0, 0.3) 2px 3px 2px;
+  width: 60%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+    /* height: 80%; */
+}
+
+.flyout > li .btn span {
+    display: block;
+    width: 26px;
+    height: 26px;
+    /* background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16px' height='16px'><path fill='#fff' d='M11.045,9.879l1.906,6.114l-4.949-3.791L3.059,16l1.9-6.117L0,6.114l6.123,0.013L7.998,0l1.879,6.12L16,6.104L11.045,9.879z'/></svg>") no-repeat center center; */
+    background-size: 16px 16px;
+}

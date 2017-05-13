@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>project</title>
+
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <!-- Place favicon.ico in the root directory -->
+
+    <!-- build:css styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="lib/components-font-awesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="lib/animate.css/animate.css" />
+    <link rel="stylesheet" href="lib/bootstrap-slider/slider.css" />
+    <link rel="stylesheet" href="lib/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:css styles/main.css -->
+    <link rel="stylesheet" href="styles/toolbar.css">
+    <link rel="stylesheet" href="styles/menu_sideslide.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
+    <!-- build:css styles/toolbar.css -->
+    <!-- endbuild -->
+  </head>
+  <body>
+    <!--[if IE]>
+      <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    
+    <div class="container" id="container">
+      <div class="header">
+        <button class="menu-button" id="open-button">Open Menu</button>
+        <h3 class="text-muted">project</h3>
+      </div>
+
+
+      <div class="menu-wrap">
+        <nav class="menu">
+          <div class="icon-list">
+            <a href="#" id="open_btn"><i class="fa fa-fw fa-star-o"></i><span>打开</span></a>
+            <a href="#" id="save_btn"><i class="fa fa-fw fa-bell-o"></i><span>保存</span></a>
+            <!-- <a href="#" id="share_btn"><i class="fa fa-fw fa-envelope-o"></i><span>分享</span></a> -->
+            <!-- <a href="#"><i class="fa fa-fw fa-comment-o"></i><span>导入</span></a> -->
+            <!-- <a href="#" id=""><i class="fa fa-fw fa-bar-chart-o"></i><span>设置纸张大小</span></a> -->
+            <a href="#" style="display: none;"><i class="fa fa-fw fa-newspaper-o"></i><span>显示导航图</span><input class="switch" id="nav_show_switch" type="checkbox" name="nav_show_switch" checked /></a>
+          </div>
+        </nav>
+        <button class="close-button" id="close-button">Close Menu</button>
+      </div>
+
+      <div class="toolbar-menu">
+        <a class="flyout-btn" href="#" title="Toggle"><span>Flyout Menu Toggle</span></a>
+        <ul class="flyout">
+            <li class="menu-item"><a href="#" class="btn clicked" id="pencil_btn"><img src="images/pencil.png" alt="画笔工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="eraser_btn"><img src="images/eraser.png" alt="橡皮擦工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="brush_btn"><img src="images/brush.png" alt="刷子工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="line_btn"><img src="images/line.png" alt="线条工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="circle_btn"><img src="images/circle.png" alt="圆形工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="rect_btn"><img src="images/rect.png" alt="矩形工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="color_stroke_btn"><img src="images/color.png" alt="线条工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="color_fill_btn"><img src="images/color.png" alt="填充工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="background_btn"><img src="images/background.png" alt="背景工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="width_btn"><img src="images/width.png" alt="粗细工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="text_btn"><img src="images/text.png" alt="文本工具"></a></li>
+<!--             <li class="menu-item"><a href="#" class="btn" id="undo_btn"><img src="images/undo.png" alt="撤销工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="redo_btn"><img src="images/redo.png" alt="恢复工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="copy_btn"><img src="images/copy.png" alt="复制工具"></a></li> -->
+            <li class="menu-item"><a href="#" class="btn" id="hand_btn"><img src="images/hand.png" alt="手形工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="clear_btn"><img src="images/clear.png" alt="清空工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="picker_btn"><img src="images/picker.png" alt="取色器工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="zoomout_btn"><img src="images/zoomin.png" alt="放大镜工具"></a></li>
+            <li class="menu-item"><a href="#" class="btn" id="zoomin_btn"><img src="images/zoomout.png" alt="缩小工具"></a></li>
+        </ul>
+      </div>
+      <div id="main-canvas-container" class="main-canvas-container">
+          <div class="canvas-wrap">
+            <canvas id="canvas" width="550px" height="400px"></canvas>
+          </div>
+      </div>
+
+
+      <canvas style="position: absolute;left: 0px;bottom: 0px; width: 275px;height: 200px; background: rgba(255,0,0,0.2);" id="canvas-temp" width="550px" height="400px"></canvas>
+
+    </div>
+        <!-- Modal -->
+        <div class="modal fade" id="borderSettingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">画笔大小</h4>
+              </div>
+              <div class="modal-body">
+                <input id="width_slider"  style="width: 100%;" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="20" data-slider-step="1" />
+                <div id="show_width_div" ></div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="submit_width">确定</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+   <form action="" style="display: none;">
+        <input type="file" name="imgOne" id="imgOne" />
+        <img id="imgPre" src="" style="display: block;" />
+    </form>
+
+
+    <!-- build:js scripts/vendor.js -->
+    <!-- bower:js -->
+    <script src="lib/jquery/jquery.js"></script>
+    <script src="lib/tether/dist/js/tether.js"></script>
+    <script src="lib/jquery-bridget/jquery-bridget.js"></script>
+    <script src="lib/get-size/get-size.js"></script>
+    <script src="lib/ev-emitter/ev-emitter.js"></script>
+    <script src="lib/unipointer/unipointer.js"></script>
+    <script src="lib/unidragger/unidragger.js"></script>
+    <script src="lib/draggabilly/draggabilly.js"></script>
+    <script src="lib/jTap/jquery.tap.js"></script>
+    <script src="lib/classie/classie.js"></script>
+    <script src="lib/tinytip/tinytip.js"></script>
+    <script src="lib/tinyColorPicker/jqColorPicker.min.js"></script>
+    <script src="lib/bootstrap-slider/bootstrap-slider.js"></script>
+    <script src="lib/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
+    
+    <!-- build:js scripts/plugins.js -->
+    <script src="lib/bootstrap/js/dist/util.js"></script>
+    <script src="lib/bootstrap/js/dist/alert.js"></script>
+    <script src="lib/bootstrap/js/dist/button.js"></script>
+    <script src="lib/bootstrap/js/dist/carousel.js"></script>
+    <script src="lib/bootstrap/js/dist/collapse.js"></script>
+    <script src="lib/bootstrap/js/dist/dropdown.js"></script>
+    <script src="lib/bootstrap/js/dist/modal.js"></script>
+    <script src="lib/bootstrap/js/dist/scrollspy.js"></script>
+    <script src="lib/bootstrap/js/dist/tab.js"></script>
+    <script src="lib/bootstrap/js/dist/tooltip.js"></script>
+    <script src="lib/bootstrap/js/dist/popover.js"></script>
+    <!-- endbuild -->
+    
+    <!-- build:js scripts/main.js -->
+     <script src="scripts/bscroll.js"></script>
+     <script src="scripts/toolbar.js"></script>
+     <script src="scripts/sideslide.js"></script>
+     <script src="scripts/canvascontext.js"></script>
+    <script src="scripts/main.js"></script>
+    <!-- endbuild -->
+  </body>
+</html>

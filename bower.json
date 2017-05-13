@@ -1,0 +1,36 @@
+{
+  "name": "project",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "~4.0.0-alpha.6",
+    "jquery-bridget": "^2.0.1",
+    "draggabilly": "^2.1.1",
+    "jTap": "https://github.com/BR0kEN-/jTap.git#^0.3.1",
+    "components-font-awesome": "^4.7.0",
+    "classie": "^1.0.1",
+    "animate.css": "^3.5.2",
+    "tinytip": "^0.0.1",
+    "tinyColorPicker": "^1.1.1",
+    "bootstrap-slider": "*",
+    "bootstrap-switch": "^3.3.4",
+    "colpick": "^2.0.2"
+  },
+  "overrides": {
+    "bootstrap": {
+      "main": [
+        "scss/bootstrap.scss",
+        "dist/js/bootstrap.js",
+        "dist/css/bootstrap.css"
+      ]
+    },
+    "jTap": {
+      "main": [
+        "jquery.tap.js"
+      ]
+    }
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.3.0"
+  }
+}
