@@ -86,7 +86,7 @@ html,body{
   /* transform: translate(-50%, -50%); */
 }
 .main-canvas-container canvas {
-  cursor: url('../images/pencil.png') 2 30,auto;
+  cursor: url('../images/pencil.png') 2 62,auto;
   margin: auto;
   background: #fff;
 }
@@ -143,4 +143,20 @@ position: absolute ;
   height: 10px;
   right: 8px;
   bottom: 8px;
+}
+
+.historyShow{
+	 font-weight: bold;
+	 margin-left: 20px;
+   margin: 2px;
+}
+
+.bb_ctl_switch{
+  float: right;display: inline-block;    height: 100%;
+    line-height: 3rem;margin-right: 20px;
+    cursor: pointer;
+}
+
+.bb_txt_el{
+  display: none;
 }

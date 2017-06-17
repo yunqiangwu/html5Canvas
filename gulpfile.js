@@ -97,9 +97,11 @@ gulp.task('serve', () => {
         baseDir: ['.tmp', 'app'],
         routes: {
           '/lib': 'app/lib'
-        }
+        },
       }
     });
+
+    console.log(browserSync);
 
     gulp.watch([
       'app/*.html',

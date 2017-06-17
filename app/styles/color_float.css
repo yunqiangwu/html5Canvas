@@ -1,0 +1,66 @@
+/*画布大小设置*/
+#canvas-width:hover{ 
+      -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+} 
+
+  #canvas-height:hover{ 
+      -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+} 
+
+
+/*字体设置*/
+#fontSize:hover{
+	 -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+}
+
+#fontType:hover{
+	 -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+}
+
+#fontBold:hover{
+	 -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+}
+
+#fontItalic:hover{
+	 -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+}
+
+ /*画笔设置*/
+#pencilWidth:hover{
+	 -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+}
+
+/*刷子设置*/
+#Brush-size:hover{
+	 -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+}
+
+
+#Brush-points:hover{
+	 -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+}
+
+
+#Brush-interval:hover{
+	 -webkit-transition:border linear .2s,-webkit-box-shadow linear .5s; 
+      border-color:rgba(141,39,142,.75); 
+      -webkit-box-shadow:0 0 10px dodgerblue; 
+}

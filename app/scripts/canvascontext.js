@@ -1,3 +1,50 @@
+const WebSocketClient = window.WebSocketClient;
+
+const getQueryParam = function(argName) {
+    var result =location.search.match(new RegExp('[?&]' + argName + '=([^=&]+)'));
+    return result&&result[1];
+}
+
+const webSocket = WebSocketClient.init({
+    path: 'ws://' + location.host + '/ws/',
+    open: () => {
+        var bbid = getQueryParam('bbid');
+        if(bbid){
+            isEnableBB = true;
+            $('#enable_bb').click();
+            $('.bb_check_el').hide();
+        }
+        webSocket.on('action',function (data) {
+            GameCanvasContext.action.apply(window,data.concat([true]));
+        });
+        webSocket.on('draw',function (data) {
+            GameCanvasContext.draw.apply(window,data.concat([true]));
+        });
+    }
+});
+
+function connRoom(bbid){
+    if (bbid) {
+        if(webSocket.bbid){
+            disConnRoom(webSocket.bbid);
+        }
+        webSocket.send(bbid,'conn');
+        webSocket.bbid=bbid;
+
+
+
+    }
+}
+
+function disConnRoom(bbid){
+    if (bbid) {
+        webSocket.send(bbid,'disconn');
+        webSocket.bbid=null;
+    }
+}
+
+var isEnableBB = false;
+
 var GameCanvasContext = {};
 window.GameCanvasContext = GameCanvasContext;
 
@@ -7,8 +54,29 @@ var canvasWrap = $('.canvas-wrap');
 var canvas = $('#canvas')[0];
 var canvasTemp = $('#canvas-temp')[0];
 var ctxTemp = canvasTemp.getContext('2d');
-var c_w = 550,
-    c_h = 400;
+var c_w = 550
+var c_h = 400;
+var c_img = null;
+//刷子参数
+var bwidth = 20;
+var bpoints = 30;
+var pointsize = 0.4;
+
+//撤销参数
+var undo_new = null;
+var tempMode = null;
+var command = null;
+var old_command = null;
+
+var a_1 = 1;
+var b_1 = 1;
+var c_1 = 1;
+var d_1 = 1;
+var e_1 = 1;
+var f_1 = 1;
+var g_1 = 0;
+
+
 /**
   
   pencil 画笔工具
@@ -17,16 +85,25 @@ var c_w = 550,
 */
 GameCanvasContext.canvasMode = 'pencil_btn';
 
+//$(document).ready(function(){
+//  $('#pencil_btn').click(function(){
+//  $('#pencilSettingModal').modal('show');
+//  });
+//});
+
 
 var historyData = [];
 var historyIndex = -1;
-var historyMaxIndex = 100;
+var historyMaxIndex = 1000;
 var canvas = GameCanvasContext.canvas = canvas;
 var ctx = GameCanvasContext.ctx = GameCanvasContext.canvas.getContext('2d');
 var bgColor = 'rgba(255,255,255,.3)';
 var strokeColor = '#000';
-var cfont =  window.getComputedStyle($('#prev_font')[0]).font;
-var fillColor = '#00ff00';
+var cTextColor = '#000';
+//var cfont =  window.getComputedStyle($('#prev_font')[0]).font;
+var cfont = 'normal normal 500 normal 24px / 26.4px -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+
+var fillColor = '#0a0a0a';
 var lineWidth = 5;
 var widthSlider = null;
 
@@ -56,30 +133,47 @@ GameCanvasContext.centerCanvas = function centerCanvas(w, h) {
 
 
     canvasWrap.css({
-        'width': (+w) + 80 +'px',
-        'height': (+h) + 80 +'px'
+        'width': (+w) + 80 + 'px',
+        'height': (+h) + 80 + 'px'
     });
     $('#canvas').css({
         // 'top': 0 + 'px',
         // 'left': 0 + 'px',
-        'width': w+'px',
-        'height': h+'px'
+        'width': w + 'px',
+        'height': h + 'px'
     });
     GameCanvasContext.cscroll && GameCanvasContext.cscroll.refresh();
-
-
-
 };
 
 var startPoint = { x: 0, y: 0 };
 var $currentTextel = null;
 var textareael = null;
-GameCanvasContext.draw = function(x, y, type, e) {
+var tempCanvas2 = null;
+GameCanvasContext.draw = function(x, y, type, pageX,pageY,fromBroadCast) {
     var isRestore = false;
+    var isBoardCast = true;
     try {
         var canvasMode = GameCanvasContext.canvasMode;
         switch (canvasMode) {
 
+            case 'putImg':
+                if (type === 'move') {
+                    if (!tempCanvas2) {
+                        tempCanvas2 = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    } else {
+                        ctx.putImageData(tempCanvas2, 0, 0);
+                    }
+                    ctx.drawImage(c_img, x, y);
+                }
+                if (type === 'click') {
+                    ctx.putImageData(tempCanvas2, 0, 0);
+                    ctx.drawImage(c_img, x, y);
+                    GameCanvasContext.action(tempMode, '');
+                    tempCanvas2 = null;
+                    $('#imgOne').val('');
+                }
+                return;
+                break;
             case 'eraser_btn':
                 if (type === 'dragstart' || type === 'drag' || type === 'dragend' || type === 'click') {
                     ctx.clearRect(x - 15, y - 15, 30, 30);
@@ -110,18 +204,20 @@ GameCanvasContext.draw = function(x, y, type, e) {
                     ctx.arc(x, y, ctx.lineWidth + 1, 0, Math.PI * 2, false);
                     ctx.fill();
                 } else {
-                    window.console.log(type);
                     return;
                 }
                 break;
             case 'brush_btn':
-                drawBrush(x, y);
+                if (type === 'drag') {
+                    drawBrush(x, y);
+                }
                 if (!(type === 'dragend' || type === 'click')) {
                     return;
                 }
+
                 break;
             case 'text_btn':
-                var isRetrun= true;
+                var isRetrun = true;
                 if (type === 'click') {
                     // startPoint = { x: x, y: y };
                     if ($currentTextel) {
@@ -135,7 +231,7 @@ GameCanvasContext.draw = function(x, y, type, e) {
                             ty = ty - ty2 + 23;
                             var txtStyle = window.getComputedStyle(textareael[0]);
                             drawText(text, tx, ty, textareael.width(), textareael.height(), txtStyle);
-                            isRetrun =false;
+                            isRetrun = false;
                         }
                         $currentTextel.remove();
                         $currentTextel = null;
@@ -145,10 +241,10 @@ GameCanvasContext.draw = function(x, y, type, e) {
                         $currentTextel = $('<div class=\'textEl\'><div class=\'handle\'/><div class=\'handle\'/><div class=\'handle\'/><div class=\'handle\'/><div class=\'resizeHandle\' /><textarea /></div>')
                             .appendTo('#main-canvas-container')
                             .draggabilly({ handle: '.handle', containment: '#canvas' })
-                            .css({ left: e.pageX - canvasOffset.left + 'px', top: e.pageY - canvasOffset.top + 'px' })
+                            .css({ left: (pageX - canvasOffset.left) + 'px', top: (pageY - canvasOffset.top) + 'px' })
                             .find('textarea')
-                            .css('color', strokeColor)
-                            .css('font',cfont)
+                            .css('color', cTextColor)
+                            .css('font', cfont)
                             .mouseup(function() {
                                 var $this = jQuery(this);
                                 if ($this.outerWidth() != $this.data('x') || $this.outerHeight() != $this.data('y')) {
@@ -162,19 +258,24 @@ GameCanvasContext.draw = function(x, y, type, e) {
                         textareael = $currentTextel.find('textarea');
                         $currentTextel.width(textareael.width() + 12).height(textareael.height() + 12);
                         textareael.focus();
-                        if(isRetrun){
+                        if (isRetrun) {
                             return;
                         }
-                        
+
                     }
                 } else if (type === 'dragend') {
                     // alert(32);
                     return;
+                } else if (type === 'drag') {
+                    return;
                 }
                 break;
             case 'line_btn':
+
             case 'circle_btn':
+
             case 'rect_btn':
+
                 if (type === 'dragstart') {
                     startPoint = { x: x, y: y };
                     return;
@@ -184,10 +285,15 @@ GameCanvasContext.draw = function(x, y, type, e) {
                 } else if (type === 'dragend') {
                     drawShape(canvasMode, startPoint.x, startPoint.y, x, y);
                 }
+
                 break;
-                // if(type)
+
 
         }
+        if (type === 'move') {
+            return;
+        }
+
         var cc = ctx.getImageData(0, 0, canvas.width, canvas.height);
         ctxTemp.putImageData(cc, 0, 0);
         if (historyIndex <= historyMaxIndex) {
@@ -198,11 +304,21 @@ GameCanvasContext.draw = function(x, y, type, e) {
         historyData.push(cc);
 
 
+        $('.historyShow').text('当前操作步数：' + (+historyIndex + 1));
+
+
+
     } catch (e) {
         console.log(e);
     } finally {
         if (isRestore) {
             ctx.restore();
+        }
+        if(type == 'move'){
+            isBoardCast = false;
+        }
+        if(isBoardCast&&isEnableBB&&!fromBroadCast){
+            webSocket.send(Array.prototype.slice.call(arguments),'draw');
         }
     }
 };
@@ -237,7 +353,9 @@ var dragHandle = function(e) {
         isMouseDown = false;
     }
     if (!isMouseDown && type === 'mousemove') {
-        return;
+        type = 'move';
+
+        //      return;
     }
     offset = $(this).offset();
     x = e.clientX - offset.left;
@@ -264,7 +382,8 @@ var dragHandle = function(e) {
 
 
 
-    GameCanvasContext.draw(x * (canvas.width / c_w), y * (canvas.height / c_h), type, e);
+    GameCanvasContext.draw(x * (canvas.width / c_w), y * (canvas.height / c_h), type, e.pageX,e.pageY);
+
     // _this.$emit('draw',x/canvas.width, y/canvas.height, type);
     // }
 };
@@ -315,11 +434,15 @@ function resizeCanvas() {
 GameCanvasContext.resizeCanvas = resizeCanvas;
 
 
-function action(command, old_command) {
+
+function action(command, old_command,fromBroadCast) {
     console.log(command, old_command);
 
+    if(isEnableBB&&!fromBroadCast){
+        webSocket.send(Array.prototype.slice.call(arguments),'action');
+    }
 
-    if (old_command == 'hand_btn' && command != 'hand_btn'  && command != 'zoomout_btn'  && command != 'zoomin_btn') {
+    if (old_command == 'hand_btn' && command != 'hand_btn' && command != 'zoomout_btn' && command != 'zoomin_btn') {
         closeHandMode();
         bindCanvasEvent();
     }
@@ -352,49 +475,66 @@ function action(command, old_command) {
             break;
         case 'zoomin_btn':
             zoomin();
-            break;
+            return;
         case 'zoomout_btn':
             zoomout();
-            break;
+            return;
         case 'clear_btn':
             GameCanvasContext.clear();
             break;
         case 'undo_btn':
+
             if (historyIndex >= 1) {
                 historyIndex--;
                 ctx.putImageData(historyData[historyIndex], 0, 0);
                 ctxTemp.putImageData(historyData[historyIndex], 0, 0);
             }
+
+            $('.historyShow').text('"撤销工具"' + '   ' + '当前操作步数：' + (+historyIndex + 1));
+
+
             break;
         case 'redo_btn':
+
             if (historyData.length - 1 >= historyIndex + 1) {
                 historyIndex++;
                 ctx.putImageData(historyData[historyIndex], 0, 0);
                 ctxTemp.putImageData(historyData[historyIndex], 0, 0);
             }
+            $('.historyShow').text('"恢复工具"' + '   ' + '当前操作步数：' + (+historyIndex));
             break;
         case 'pencil_btn':
         case 'eraser_btn':
-        case 'brush_btn':
-        case 'pencil_btn':
         case 'line_btn':
         case 'circle_btn':
         case 'rect_btn':
             GameCanvasContext.changetool(command);
             break;
         case 'text_btn':
-            if(old_command =='text_btn'){
+            if (old_command == 'text_btn') {
                 $('#fontSettingModal').modal('show');
             }
             GameCanvasContext.changetool(command);
             break;
         case 'color_btn':
-            // $('#color_stroke_btn').trigger('focusin.tcp')
             $('#colorSettingModal').modal('show');
             break;
 
         case 'width_btn':
             $('#borderSettingModal').modal('show');
+            break;
+
+        case 'brush_btn':
+            if (old_command == 'brush_btn') {
+                $('#Brush-size').val(bwidth);
+                $('#Brush-points').val(bpoints);
+                $('#Brush-interval').val(pointsize);
+                $('#brushSettingModal').modal('show');
+                return;
+            }
+            GameCanvasContext.changetool(command);
+
+
             break;
     }
 }
@@ -402,7 +542,6 @@ GameCanvasContext.action = action;
 
 var is_inited;
 GameCanvasContext.init = function() {
-
     if (is_inited)
         return;
     bindCanvasEvent();
@@ -426,31 +565,20 @@ GameCanvasContext.init = function() {
             // console.log(this);
         }
     });
-    //     .colorPicker($.extend({}, colorOptions, {
-    //         renderCallback: function($elm, toggled) {
-    //             var colors = this.color.colors;
-    //             strokeColor = '#' + (colors.HEX);
-    //             refreshColor();
-    //     }
-    // }));
+
 
     $('#fillColorSetting').colpick({
         flat: true,
         layout: 'hex',
         submit: 0,
         onChange: function(a, b, c) {
+            //          $('#prev_font').css('color','#'+b);
             this.data('color', b);
             // console.log(a,b,c);
             // console.log(this);
         }
     });
-    // .colorPicker($.extend({}, colorOptions, {
-    //     renderCallback: function($elm, toggled) {
-    //         var colors = this.color.colors;
-    //         fillColor = '#' + (colors.HEX);
-    //         refreshColor();
-    //     }
-    // }));
+
 
     $('#backgroundColorSetting').colpick({
         flat: true,
@@ -458,6 +586,19 @@ GameCanvasContext.init = function() {
         submit: 0,
         onChange: function(a, b, c) {
             this.data('color', b);
+
+        }
+    });
+
+
+    $('#fontColorSetting').colpick({
+        flat: true,
+        layout: 'hex',
+        submit: 0,
+        onChange: function(a, b, c) {
+            this.data('color', b);
+            $('#prev_font').css('color', '#' + b);
+
             // console.log(a,b,c);
             // console.log(this);
         }
@@ -494,11 +635,29 @@ GameCanvasContext.init = function() {
 
     });
 
+    $('#enable_bb').bootstrapSwitch()
+        .data('bootstrapSwitch').onSwitchChange(function() {
+            isEnableBB = $(this).data('bootstrapSwitch').state();
+            if (isEnableBB) {
+                var bbid = getQueryParam('bbid')||(+new Date());
+                connRoom(bbid);
+                $('#txt_bb_url').val(location.protocol + '//' + location.host + '?bbid=' + (bbid));
+                $('.bb_txt_el').show()
+            } else {
+                $('.bb_txt_el').hide();
+            }
+
+
+
+
+        });
+
 
     $('#show_width_div').css({
         'height': lineWidth + 'px'
     });
 
+    //设置"大小窗口"中宽度值
     $('#submit_width').click(function() {
         changeLineWidth($('#width_slider').val());
         $('#borderSettingModal').modal('hide');
@@ -516,16 +675,15 @@ GameCanvasContext.init = function() {
         $('#colorSettingModal').modal('hide');
     });
 
+    $('#submit_canvas_size').click(function() {
+        bgColor = '#' + $('#backgroundColorSetting').data('color');
+        refreshColor();
+    });
+
+
+
     GameCanvasContext.resizeCanvas();
-    // $('#strokeColorSetting').css({
-    //     background: strokeColor,
-    // });
-    // $('#fillColorSetting').css({
-    //     background: fillColor,
-    // });
-    // $('#backgroundColorSetting').css({
-    //     background: bgColor,
-    // });
+
 
     $(canvasTemp).draggabilly({
         containment: 'body'
@@ -606,7 +764,10 @@ function zoomout() {
 function changeCursor(tool_id) {
     switch (tool_id) {
         case 'pencil_btn':
-            $(canvas).css('cursor', 'url(\'./images/pencil.png\') 2 30,auto');
+            $(canvas).css('cursor', 'url(\'./images/pencil.png\') 18 60,auto');
+            break;
+        case 'putImg':
+            $(canvas).css('cursor', 'auto');
             break;
         case 'line_btn':
         case 'circle_btn':
@@ -616,7 +777,7 @@ function changeCursor(tool_id) {
         case 'eraser_btn':
         case 'brush_btn':
         default:
-            $(canvas).css('cursor', 'url(\'./images/' + tool_id.substr(0, tool_id.length - 4) + '.png\') 2 30,auto');
+            $(canvas).css('cursor', 'url(\'./images/' + tool_id.substr(0, tool_id.length - 4) + '.png\') 18 60,auto');
             break;
     }
 }
@@ -641,6 +802,7 @@ function refreshColor() {
     GameCanvasContext.ctx.fillStyle = fillColor;
     GameCanvasContext.ctx.strokeStyle = strokeColor;
     $('#canvas').css('background', bgColor);
+    //  textareael && textareael.css('color',cTextColor);
 }
 
 function changeLineWidth(v) {
@@ -649,11 +811,16 @@ function changeLineWidth(v) {
 
 GameCanvasContext.changetool = changetool;
 
+
+//刷子工具
 function drawBrush(x, y) {
+
+
     ctx.save();
-    for (var i = 1; i <= 20; i++) {
+
+    for (var i = 1; i <= bpoints; i++) {
         ctx.beginPath();
-        ctx.arc(x + 3 * lineWidth * (Math.random() - 0.5), y + 3 * lineWidth * (Math.random() - 0.5), 0.1 * lineWidth * Math.random(), 0, Math.PI * 2, false);
+        ctx.arc(x + bwidth * lineWidth * (Math.random() - 0.5), y + bwidth * lineWidth * (Math.random() - 0.5), pointsize * lineWidth * Math.random(), 0, Math.PI * 2, false);
         ctx.fill();
     }
 
@@ -740,6 +907,7 @@ function drawText(str, x, y, width, height, txtStyle) {
     ctx.fillStyle = strokeColor;
 
 
+
     x *= (canvas.width / c_w);
     y *= (canvas.height / c_h);
     width *= (canvas.width / c_w);
@@ -768,6 +936,8 @@ function canvasTextAutoLine(str, width, initX, initY, lineHeight) {
     var n = str.length;
     var i = 0;
     var mstr = '';
+    ctx.save();
+    ctx.fillStyle = cTextColor;
     while (true) {
         var t = str.substring(i, i + 1);
         if (ctx.measureText(mstr).width > width || t === '\n') {
@@ -785,7 +955,7 @@ function canvasTextAutoLine(str, width, initX, initY, lineHeight) {
             break;
         }
     }
-
+    ctx.restore();
 }
 
 
@@ -835,6 +1005,9 @@ $('#open_btn').click(function() {
 });
 
 $('#imgOne').change(function() {
+    if (!this.value) {
+        return;
+    }
     preImg(this.id, 'imgPre');
 });
 //打开图片
@@ -849,63 +1022,113 @@ function preImg(sourceId, targetId) {
         var img = document.getElementById(targetId);
         img.src = this.result;
         img.onload = function() {
-            ctx.drawImage(img, 0, 0);
+
+            c_img = img;
+            tempMode = GameCanvasContext.canvasMode;
+            GameCanvasContext.changetool('putImg');
+
         }
     }
     reader.readAsDataURL(document.getElementById(sourceId).files[0]);
 }
 
 
-
-$('#font_settings select,#font_settings input').change(function() {
+//  #font_settings select,#font_settings input
+$('#fontSize,#fontType,#fontBold,#fontItalic,#fontColorSetting').change(function() {
     var prev_font = $('#prev_font');
-    switch(this.id){
+    switch (this.id) {
         case 'fontSize':
-            prev_font.css('font-size',this.value);
+            prev_font.css('font-size', this.value);
             break;
         case 'fontType':
-            prev_font.css('font-family',this.value);
+            prev_font.css('font-family', this.value);
             break;
         case 'fontBold':
-            prev_font.css('font-weight',$(this).is(':checked')?'bolder':'normal'   );
+            prev_font.css('font-weight', $(this).is(':checked') ? 'bolder' : 'normal');
             break;
         case 'fontItalic':
-            prev_font.css('font-style',$(this).is(':checked')?'italic':'normal'   );
+            prev_font.css('font-style', $(this).is(':checked') ? 'italic' : 'normal');
+            break;
+        case 'fontColorSetting':
+            prev_font.css('color', $(this).css('background-color'));
             break;
     }
 });
 
 
 
+//event
+$('#submit_font').click(function() {
 
-$('#submit_font').click(function(event) {
-    cfont = window.getComputedStyle($('#prev_font')[0]).font;
-    textareael.css('font',cfont);
+    var setstyle = window.getComputedStyle($('#prev_font')[0]);
+    var ccolor = setstyle.color;
+    cTextColor = ccolor;
+    cfont = setstyle.font;
+    textareael && textareael.css('color', ccolor);
+    textareael && textareael.css('font', cfont);
+
+
+    refreshColor();
+
     $('#fontSettingModal').modal('hide');
 });
 
 
-$('#canvas-size-btn').click(function(){
-        $('#canvas-width').val(canvas.width);
-         $('#canvas-height').val(canvas.height);
-        $('#sizeSettingModal').modal('show');
-        
+$('#submit_brush').click(function() {
+    bwidth = +$('#Brush-size').val();
+    bpoints = +$('#Brush-points').val();
+    pointsize = +$('#Brush-interval').val();
+    $('#brushSettingModal').modal('hide');
+
+
 });
+
+
+
+
+
+$('#canvas-size-btn').click(function() {
+    $('#canvas-width').val(canvas.width);
+    $('#canvas-height').val(canvas.height);
+    $('#sizeSettingModal').modal('show');
+
+});
+
+
+//$('#brush_btn').click(function(){
+//  $('#brushSettingModal').modal('show');
+//});
 
 
 $('#submit_canvas_size').click(function(event) {
 
 
-     var w=document.getElementById('canvas-width').value;
-     var h=document.getElementById('canvas-height').value;
+    var w = document.getElementById('canvas-width').value;
+    var h = document.getElementById('canvas-height').value;
 
-     c_w = w;
-     c_h = h;
-     canvas.setAttribute('width',c_w);
-     canvas.setAttribute('height',c_h);
-     resizeCanvas();
 
-    // cfont = window.getComputedStyle($('#prev_font')[0]).font;
-    // textareael.css('font',cfont);
+    var oldW = c_w;
+    var oldH = c_h;
+
+
+    //
+    var temp = ctx.getImageData(0, 0, oldW, oldH);
+
+    //
+    c_w = w;
+    c_h = h;
+    canvas.setAttribute('width', c_w);
+    canvas.setAttribute('height', c_h);
+
+    //
+    ctx.clearRect(0, 0, c_w, c_h);
+
+    //
+    ctx.putImageData(temp, 0, 0);
+
+    //
+    resizeCanvas();
+
+
     $('#sizeSettingModal').modal('hide');
 });

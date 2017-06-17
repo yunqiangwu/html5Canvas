@@ -14,7 +14,8 @@ $(function() {
 
         var startAng = 0;
         var endAng = 360;
-        var distinct = 8;
+        // 
+        var distinct = 8
         var items = $toolbar.find('li');
         var items_len = items.length;
 
@@ -28,7 +29,6 @@ $(function() {
         	$(el).css('transform','translate('+tx+'rem,'+ty+'rem)');
         });
 
-
         return $('.flyout').removeClass('flyout-init fade').addClass('expand');
         // '.toolbar-menu'
 
@@ -37,19 +37,10 @@ $(function() {
     function toolbar_inexpand(toolbar) {
     	var $toolbar = $(toolbar);
 
-    	// $toolbar.find('li').css('transition-delay','');
     	$toolbar.find('li').css('transform','');
 
     	$('.flyout-btn').removeClass('btn-rotate');
     	return $('.flyout').removeClass('expand');
-    	// $(".flyout").find("a").attr('class', 'btn');
-
-        // var $toolbar = $(toolbar);
-        // var startAng = 0;
-        // var endAng = 2*Math.PI;
-
-
-        // '.toolbar-menu'
 
     }
 
@@ -95,8 +86,9 @@ $(function() {
         if(['pencil_btn','eraser_btn','brush_btn','line_btn','rect_btn','circle_btn','text_btn','hand_btn','copy_btn','picker_btn'].indexOf(id) >= 0){
             $(this).closest('ul').find('.clicked').removeClass('clicked');
             $(this).addClass('clicked');
+            old_id = id;
         }
-        old_id = id;
+        
         
     });
 
